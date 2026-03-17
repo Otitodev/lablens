@@ -1,0 +1,1 @@
+"""LabLens MCP application package."""

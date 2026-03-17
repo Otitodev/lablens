@@ -1,0 +1,56 @@
+{
+  "patient_id": "SYN-004",
+  "scenario": "Iron deficiency anaemia",
+  "patient_context": {
+    "age_range": "30s",
+    "sex": "female",
+    "clinical_indication": "Fatigue and microcytic anaemia"
+  },
+  "panels": {
+    "CBC": {
+      "values": {
+        "Hgb": 8.7,
+        "MCV": 69.0,
+        "RBC": 3.4
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "Hgb": { "low": 12.0, "high": 16.0 },
+        "MCV": { "low": 80.0, "high": 100.0 },
+        "RBC": { "low": 4.0, "high": 5.2 }
+      }
+    },
+    "IRON": {
+      "results": {
+        "Ferritin": {
+          "value": 7.0,
+          "unit": "ng/mL",
+          "reference_low": 15.0,
+          "reference_high": 150.0,
+          "critical_low": null,
+          "critical_high": null
+        },
+        "TIBC": {
+          "value": 470.0,
+          "unit": "ug/dL",
+          "reference_low": 250.0,
+          "reference_high": 450.0,
+          "critical_low": null,
+          "critical_high": null
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "Hgb", "value": 8.7, "unit": "g/dL", "direction": "low", "magnitude": "moderate" },
+        { "analyte": "MCV", "value": 69.0, "unit": "fL", "direction": "low", "magnitude": "moderate" },
+        { "analyte": "Ferritin", "value": 7.0, "unit": "ng/mL", "direction": "low", "magnitude": "severe" }
+      ],
+      "clinical_context": {
+        "age_range": "30s",
+        "sex": "female",
+        "presenting_complaint": "Fatigue and pallor"
+      }
+    }
+  }
+}

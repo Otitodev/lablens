@@ -1,0 +1,48 @@
+{
+  "patient_id": "SYN-003",
+  "scenario": "Liver disease",
+  "patient_context": {
+    "age_range": "40s",
+    "sex": "male",
+    "clinical_indication": "Jaundice and elevated transaminases"
+  },
+  "panels": {
+    "LFT": {
+      "values": {
+        "ALT": 168.0,
+        "AST": 142.0,
+        "Albumin": 2.9
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "ALT": { "low": 7.0, "high": 56.0 },
+        "AST": { "low": 10.0, "high": 40.0 },
+        "Albumin": { "low": 3.5, "high": 5.0 }
+      }
+    },
+    "COAG": {
+      "results": {
+        "PT": {
+          "value": 17.2,
+          "unit": "s",
+          "reference_low": 11.0,
+          "reference_high": 14.0,
+          "critical_low": null,
+          "critical_high": 25.0
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "ALT", "value": 168.0, "unit": "U/L", "direction": "high", "magnitude": "severe" },
+        { "analyte": "AST", "value": 142.0, "unit": "U/L", "direction": "high", "magnitude": "severe" },
+        { "analyte": "Albumin", "value": 2.9, "unit": "g/dL", "direction": "low", "magnitude": "moderate" }
+      ],
+      "clinical_context": {
+        "age_range": "40s",
+        "sex": "male",
+        "presenting_complaint": "Jaundice and malaise"
+      }
+    }
+  }
+}

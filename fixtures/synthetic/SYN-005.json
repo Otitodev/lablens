@@ -1,0 +1,48 @@
+{
+  "patient_id": "SYN-005",
+  "scenario": "DKA",
+  "patient_context": {
+    "age_range": "20s",
+    "sex": "unspecified",
+    "clinical_indication": "Polyuria, vomiting, and metabolic acidosis"
+  },
+  "panels": {
+    "MIXED": {
+      "values": {
+        "Glucose": 428.0,
+        "Bicarbonate": 12.0,
+        "Anion Gap": 28.0
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "Glucose": { "low": 70.0, "high": 110.0 },
+        "Bicarbonate": { "low": 22.0, "high": 29.0 },
+        "Anion Gap": { "low": 8.0, "high": 16.0 }
+      }
+    },
+    "ABG": {
+      "results": {
+        "pH": {
+          "value": 7.18,
+          "unit": "",
+          "reference_low": 7.35,
+          "reference_high": 7.45,
+          "critical_low": 7.1,
+          "critical_high": 7.6
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "Glucose", "value": 428.0, "unit": "mg/dL", "direction": "high", "magnitude": "severe" },
+        { "analyte": "Bicarbonate", "value": 12.0, "unit": "mmol/L", "direction": "low", "magnitude": "severe" },
+        { "analyte": "Anion Gap", "value": 28.0, "unit": "mmol/L", "direction": "high", "magnitude": "severe" }
+      ],
+      "clinical_context": {
+        "age_range": "20s",
+        "sex": "unspecified",
+        "presenting_complaint": "Vomiting and hyperglycaemia"
+      }
+    }
+  }
+}

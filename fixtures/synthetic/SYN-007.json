@@ -1,0 +1,44 @@
+{
+  "patient_id": "SYN-007",
+  "scenario": "Normal baseline",
+  "patient_context": {
+    "age_range": "30s",
+    "sex": "male",
+    "clinical_indication": "Routine synthetic wellness panel"
+  },
+  "panels": {
+    "CBC": {
+      "values": {
+        "WBC": 6.2,
+        "Hgb": 14.2,
+        "Plt": 260.0
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "WBC": { "low": 4.0, "high": 11.0 },
+        "Hgb": { "low": 12.0, "high": 16.0 },
+        "Plt": { "low": 150.0, "high": 400.0 }
+      }
+    },
+    "RENAL": {
+      "results": {
+        "Creatinine": {
+          "value": 0.9,
+          "unit": "mg/dL",
+          "reference_low": 0.6,
+          "reference_high": 1.2,
+          "critical_low": null,
+          "critical_high": 4.5
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [],
+      "clinical_context": {
+        "age_range": "30s",
+        "sex": "male",
+        "presenting_complaint": null
+      }
+    }
+  }
+}

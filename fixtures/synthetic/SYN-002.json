@@ -1,0 +1,48 @@
+{
+  "patient_id": "SYN-002",
+  "scenario": "CKD stage 3",
+  "patient_context": {
+    "age_range": "50s",
+    "sex": "female",
+    "clinical_indication": "Progressive fatigue and reduced eGFR"
+  },
+  "panels": {
+    "RENAL": {
+      "values": {
+        "Creatinine": 2.1,
+        "Urea": 48.0,
+        "eGFR": 38.0
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "Creatinine": { "low": 0.6, "high": 1.2 },
+        "Urea": { "low": 7.0, "high": 20.0 },
+        "eGFR": { "low": 90.0, "high": 120.0 }
+      }
+    },
+    "CBC": {
+      "results": {
+        "Hgb": {
+          "value": 10.2,
+          "unit": "g/dL",
+          "reference_low": 12.0,
+          "reference_high": 16.0,
+          "critical_low": 7.0,
+          "critical_high": null
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "Creatinine", "value": 2.1, "unit": "mg/dL", "direction": "high", "magnitude": "moderate" },
+        { "analyte": "eGFR", "value": 38.0, "unit": "mL/min", "direction": "low", "magnitude": "moderate" },
+        { "analyte": "Hgb", "value": 10.2, "unit": "g/dL", "direction": "low", "magnitude": "mild" }
+      ],
+      "clinical_context": {
+        "age_range": "50s",
+        "sex": "female",
+        "presenting_complaint": "Fatigue with chronic renal impairment"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "patient_id": "SYN-008",
+  "scenario": "Complex mixed picture",
+  "patient_context": {
+    "age_range": "20s",
+    "sex": "female",
+    "clinical_indication": "Bruising, renal injury, and haemolytic picture"
+  },
+  "panels": {
+    "MIXED": {
+      "values": {
+        "Hgb": 7.9,
+        "Plt": 24.0,
+        "Creatinine": 3.4
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "Hgb": { "low": 12.0, "high": 16.0 },
+        "Plt": { "low": 150.0, "high": 400.0 },
+        "Creatinine": { "low": 0.6, "high": 1.2 }
+      }
+    },
+    "COAG": {
+      "results": {
+        "Plt": {
+          "value": 24.0,
+          "unit": "x10^9/L",
+          "reference_low": 150.0,
+          "reference_high": 400.0,
+          "critical_low": 20.0,
+          "critical_high": null
+        },
+        "Creatinine": {
+          "value": 3.4,
+          "unit": "mg/dL",
+          "reference_low": 0.6,
+          "reference_high": 1.2,
+          "critical_low": null,
+          "critical_high": 4.5
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "Hgb", "value": 7.9, "unit": "g/dL", "direction": "low", "magnitude": "severe" },
+        { "analyte": "Plt", "value": 24.0, "unit": "x10^9/L", "direction": "low", "magnitude": "severe" },
+        { "analyte": "Creatinine", "value": 3.4, "unit": "mg/dL", "direction": "high", "magnitude": "severe" }
+      ],
+      "clinical_context": {
+        "age_range": "20s",
+        "sex": "female",
+        "presenting_complaint": "Bruising and reduced urine output"
+      }
+    }
+  }
+}

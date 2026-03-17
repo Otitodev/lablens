@@ -1,0 +1,64 @@
+{
+  "patient_id": "SYN-001",
+  "scenario": "Sepsis with DIC",
+  "patient_context": {
+    "age_range": "60s",
+    "sex": "male",
+    "clinical_indication": "Fever, hypotension, and worsening confusion"
+  },
+  "panels": {
+    "CBC": {
+      "values": {
+        "WBC": 18.4,
+        "Hgb": 9.1,
+        "Plt": 62
+      },
+      "units": "SI",
+      "reference_ranges": {
+        "WBC": { "low": 4.0, "high": 11.0 },
+        "Hgb": { "low": 12.0, "high": 16.0 },
+        "Plt": { "low": 150.0, "high": 400.0 }
+      }
+    },
+    "COAG": {
+      "results": {
+        "PT": {
+          "value": 21.8,
+          "unit": "s",
+          "reference_low": 11.0,
+          "reference_high": 14.0,
+          "critical_low": null,
+          "critical_high": 25.0
+        },
+        "APTT": {
+          "value": 47.5,
+          "unit": "s",
+          "reference_low": 25.0,
+          "reference_high": 35.0,
+          "critical_low": null,
+          "critical_high": 60.0
+        },
+        "D-dimer": {
+          "value": 4.8,
+          "unit": "mg/L",
+          "reference_low": 0.0,
+          "reference_high": 0.5,
+          "critical_low": null,
+          "critical_high": null
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "WBC", "value": 18.4, "unit": "x10^9/L", "direction": "high", "magnitude": "severe" },
+        { "analyte": "Plt", "value": 62, "unit": "x10^9/L", "direction": "low", "magnitude": "severe" },
+        { "analyte": "PT", "value": 21.8, "unit": "s", "direction": "high", "magnitude": "moderate" }
+      ],
+      "clinical_context": {
+        "age_range": "60s",
+        "sex": "male",
+        "presenting_complaint": "Sepsis with bruising and bleeding"
+      }
+    }
+  }
+}

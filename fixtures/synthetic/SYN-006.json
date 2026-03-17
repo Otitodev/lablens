@@ -1,0 +1,45 @@
+{
+  "patient_id": "SYN-006",
+  "scenario": "Hyperthyroidism",
+  "patient_context": {
+    "age_range": "40s",
+    "sex": "female",
+    "clinical_indication": "Weight loss and palpitations"
+  },
+  "panels": {
+    "THYROID": {
+      "values": {
+        "TSH": 0.02,
+        "Free T4": 3.1
+      },
+      "units": "conventional",
+      "reference_ranges": {
+        "TSH": { "low": 0.4, "high": 4.2 },
+        "Free T4": { "low": 0.8, "high": 1.8 }
+      }
+    },
+    "LIPID": {
+      "results": {
+        "Cholesterol": {
+          "value": 125.0,
+          "unit": "mg/dL",
+          "reference_low": 140.0,
+          "reference_high": 200.0,
+          "critical_low": null,
+          "critical_high": null
+        }
+      }
+    },
+    "differentials": {
+      "abnormal_findings": [
+        { "analyte": "TSH", "value": 0.02, "unit": "mIU/L", "direction": "low", "magnitude": "severe" },
+        { "analyte": "Free T4", "value": 3.1, "unit": "ng/dL", "direction": "high", "magnitude": "severe" }
+      ],
+      "clinical_context": {
+        "age_range": "40s",
+        "sex": "female",
+        "presenting_complaint": "Palpitations and heat intolerance"
+      }
+    }
+  }
+}
