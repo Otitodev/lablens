@@ -74,7 +74,7 @@ class CriticalValueItem(StrictModel):
 
 class FlagCriticalValuesRequest(StrictModel):
     patient_id: SyntheticId
-    results: dict[str, CriticalValueItem]
+    results: dict[str, CriticalValueItem] = Field(default_factory=dict)
 
     @field_validator("patient_id")
     @classmethod

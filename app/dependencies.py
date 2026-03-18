@@ -4,6 +4,8 @@ from functools import lru_cache
 from app.config import get_settings
 from app.errors import ConfigurationError
 from app.services.anthropic_service import AnthropicJSONService
+from app.services.epic_oauth_service import EpicOAuthService
+from app.services.fhir_service import FHIRService
 from app.services.gemini_service import GeminiJSONService
 from app.services.openai_service import OpenAIJSONService
 from app.services.mistral_service import MistralJSONService
@@ -62,5 +64,23 @@ def get_llm_service():
         return None
 
 
+@lru_cache
+def get_epic_oauth_service() -> EpicOAuthService | None:
+    settings = get_settings()
+    if not settings.epic_configured:
+        return None
+    logger.info(
+        "EpicOAuthService initialised client_id=%s token_url=%s",
+        settings.epic_client_id,
+        settings.epic_token_url,
+    )
+    return EpicOAuthService(settings)
+
+
+@lru_cache
+def get_fhir_service() -> FHIRService:
+    return FHIRService(oauth_service=get_epic_oauth_service())
+
+
 def get_tool_service() -> ToolService:
-    return ToolService(llm_service=get_llm_service())
+    return ToolService(llm_service=get_llm_service(), fhir_service=get_fhir_service())

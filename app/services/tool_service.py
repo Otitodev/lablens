@@ -5,6 +5,7 @@ import logging
 from app.errors import ConfigurationError
 from app.models.common import ResultStatus
 from app.models.tools import (
+    CriticalValueItem,
     FlagCriticalValuesRequest,
     FlagCriticalValuesResponse,
     GenerateClinicalSummaryRequest,
@@ -15,6 +16,7 @@ from app.models.tools import (
     SuggestDifferentialsResponse,
 )
 from app.services.anthropic_service import AnthropicJSONService
+from app.services.fhir_service import FHIRService
 from app.services.prompts import (
     GENERATE_CLINICAL_SUMMARY_PROMPT,
     INTERPRET_LAB_PANEL_PROMPT,
@@ -27,8 +29,13 @@ logger = logging.getLogger(__name__)
 
 
 class ToolService:
-    def __init__(self, llm_service: AnthropicJSONService | None = None) -> None:
+    def __init__(
+        self,
+        llm_service: AnthropicJSONService | None = None,
+        fhir_service: FHIRService | None = None,
+    ) -> None:
         self.llm_service = llm_service
+        self.fhir_service = fhir_service
 
     def flag_critical_values(
         self,
@@ -36,8 +43,30 @@ class ToolService:
         sharp: SharpContext | None = None,
     ) -> FlagCriticalValuesResponse:
         self._log_sharp(sharp, "flag_critical_values")
+
+        results = dict(request.results)
+
+        # If no results were provided in the request body, try FHIR
+        if not results and sharp and self.fhir_service:
+            patient_labs = self.fhir_service.fetch_labs(sharp)
+            if patient_labs and patient_labs.has_results:
+                logger.info(
+                    "flag_critical_values using FHIR data patient_id=%s count=%d",
+                    sharp.patient_id,
+                    len(patient_labs.observations),
+                )
+                for obs in patient_labs.observations:
+                    if obs.reference_low is None or obs.reference_high is None:
+                        continue
+                    results[obs.analyte] = CriticalValueItem(
+                        value=obs.value,
+                        unit=obs.unit,
+                        reference_low=obs.reference_low,
+                        reference_high=obs.reference_high,
+                    )
+
         alerts = []
-        for analyte, item in request.results.items():
+        for analyte, item in results.items():
             alert = build_alert(analyte, item)
             if alert:
                 alerts.append(alert)
@@ -86,6 +115,7 @@ class ToolService:
             "analytes": interpreted_values,
             "output_schema": InterpretLabPanelResponse.model_json_schema(),
         }
+        self._attach_fhir_context(payload, sharp)
         return llm.generate_json(
             tool_name="interpret_lab_panel",
             system_prompt=INTERPRET_LAB_PANEL_PROMPT,
@@ -107,6 +137,7 @@ class ToolService:
             "summary_type": request.summary_type.value,
             "output_schema": GenerateClinicalSummaryResponse.model_json_schema(),
         }
+        self._attach_fhir_context(payload, sharp)
         response = llm.generate_json(
             tool_name="generate_clinical_summary",
             system_prompt=GENERATE_CLINICAL_SUMMARY_PROMPT,
@@ -130,6 +161,7 @@ class ToolService:
             "max_differentials": request.max_differentials,
             "output_schema": SuggestDifferentialsResponse.model_json_schema(),
         }
+        self._attach_fhir_context(payload, sharp)
         response = llm.generate_json(
             tool_name="suggest_differentials",
             system_prompt=SUGGEST_DIFFERENTIALS_PROMPT,
@@ -141,9 +173,9 @@ class ToolService:
         caveat = response.clinical_caveat or "AI-generated output; review by a qualified clinician is required."
         return response.model_copy(update={"differentials": ranked, "clinical_caveat": caveat})
 
-    def _require_llm(self) -> AnthropicJSONService:
+    def _require_llm(self):
         if not self.llm_service:
-            raise ConfigurationError("LLM-backed tool requested without an Anthropic service configured.")
+            raise ConfigurationError("LLM-backed tool requested without an LLM service configured.")
         return self.llm_service
 
     def _log_sharp(self, sharp: SharpContext | None, tool_name: str) -> None:
@@ -154,3 +186,29 @@ class ToolService:
                 sharp.patient_id,
                 sharp.fhir_server_url,
             )
+
+    def _attach_fhir_context(self, payload: dict, sharp: SharpContext | None) -> None:
+        """If SHARP context is present, fetch FHIR observations and attach them
+        to the LLM payload as supplementary clinical context."""
+        if not sharp or not self.fhir_service:
+            return
+        patient_labs = self.fhir_service.fetch_labs(sharp)
+        if not patient_labs or not patient_labs.has_results:
+            return
+        payload["fhir_observations"] = [
+            {
+                "analyte": obs.analyte,
+                "value": obs.value,
+                "unit": obs.unit,
+                "loinc_code": obs.loinc_code,
+                "reference_low": obs.reference_low,
+                "reference_high": obs.reference_high,
+                "status": obs.status,
+            }
+            for obs in patient_labs.observations
+        ]
+        logger.info(
+            "fhir_context_attached tool payload patient_id=%s observations=%d",
+            sharp.patient_id,
+            len(patient_labs.observations),
+        )

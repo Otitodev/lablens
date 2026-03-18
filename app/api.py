@@ -1,8 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Depends
 
-from app.dependencies import get_tool_service
+from app.dependencies import get_epic_oauth_service, get_tool_service
 from app.agent_card import AGENT_CARD
+from app.services.epic_oauth_service import EPIC_SANDBOX_PATIENT_IDS
 from app.sharp import SharpContext, extract_sharp_context
+
+logger = logging.getLogger(__name__)
 from app.models.tools import (
     FlagCriticalValuesRequest,
     FlagCriticalValuesResponse,
@@ -53,6 +58,29 @@ def mcp_initialize() -> dict:
             "experimental": AGENT_CARD["capabilities"]["experimental"],
         },
     }
+
+
+@router.get("/fhir/epic/patients")
+def epic_sandbox_patients() -> dict:
+    """Known Epic sandbox patient IDs for developer reference."""
+    return {"patients": EPIC_SANDBOX_PATIENT_IDS}
+
+
+@router.get("/jwks.json")
+def jwks(epic_service=Depends(get_epic_oauth_service)) -> dict:
+    """Public JWK Set for Epic FHIR JWT assertion verification.
+
+    Register https://<host>/jwks.json as the 'Non-Production JWK Set URL'
+    in the Epic developer portal. Epic fetches this to verify tokens.
+    Returns an empty keys array when Epic is not configured.
+    """
+    if not epic_service or not epic_service._settings.epic_private_key:
+        return {"keys": []}
+    try:
+        return {"keys": [epic_service._get_public_jwk()]}
+    except Exception:
+        logger.warning("jwks_derivation_failed", exc_info=True)
+        return {"keys": []}
 
 
 # ---------------------------------------------------------------------------

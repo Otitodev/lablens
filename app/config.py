@@ -22,6 +22,26 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = Field(default=None, alias="MISTRAL_API_KEY")
     mistral_model: str = Field(default="mistral-small-latest", alias="MISTRAL_MODEL")
 
+    # Epic FHIR Sandbox OAuth (SMART on FHIR — Backend Systems / JWT assertion)
+    epic_client_id: str | None = Field(default=None, alias="EPIC_CLIENT_ID")
+    # Deprecated: client_secret replaced by JWT assertion. Kept so existing
+    # .env files with EPIC_CLIENT_SECRET do not cause a validation error.
+    epic_client_secret: str | None = Field(default=None, alias="EPIC_CLIENT_SECRET")
+    epic_private_key: str | None = Field(default=None, alias="EPIC_PRIVATE_KEY")
+    epic_kid: str = Field(default="lablens-1", alias="EPIC_KID")
+    epic_token_url: str = Field(
+        default="https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token",
+        alias="EPIC_TOKEN_URL",
+    )
+    epic_fhir_base_url: str = Field(
+        default="https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+        alias="EPIC_FHIR_BASE_URL",
+    )
+
+    @property
+    def epic_configured(self) -> bool:
+        return bool(self.epic_client_id and self.epic_private_key)
+
     # Provider selection: "anthropic" | "gemini" | "openai" | "mistral"
     llm_provider: Literal["anthropic", "gemini", "openai", "mistral"] = Field(
         default="anthropic", alias="LLM_PROVIDER"
