@@ -119,11 +119,55 @@ class FHIRService:
             sharp.patient_id,
             len(observations),
         )
+
+        # Epic stores many labs inside DiagnosticReport contained Observations.
+        # If the direct Observation query returned nothing, try DiagnosticReport.
+        if not observations:
+            observations = self._fetch_diagnostic_report_observations(
+                base=base, patient_id=sharp.patient_id, headers=headers
+            )
+
         return FHIRPatientLabs(
             patient_id=sharp.patient_id,
             fhir_server_url=base,
             observations=observations,
         )
+
+    def _fetch_diagnostic_report_observations(
+        self,
+        *,
+        base: str,
+        patient_id: str,
+        headers: dict,
+    ) -> list[FHIRLabObservation]:
+        """Fetch Observations contained within DiagnosticReport resources.
+
+        Epic often stores lab panels as DiagnosticReport with contained
+        Observation entries rather than standalone Observations.
+        """
+        url = f"{base}/DiagnosticReport"
+        params = {
+            "patient": patient_id,
+            "category": "LAB",
+            "_count": "10",
+            "_sort": "-date",
+            "_include": "DiagnosticReport:result",
+        }
+        try:
+            response = httpx.get(url, params=params, headers=headers, timeout=self._timeout)
+            response.raise_for_status()
+        except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+            logger.warning("fhir_diagnostic_report_fetch failed error=%s", exc)
+            return []
+
+        bundle = response.json()
+        observations = _parse_bundle(bundle)
+        logger.info(
+            "fhir_diagnostic_report patient_id=%s observations_found=%d",
+            patient_id,
+            len(observations),
+        )
+        return observations
 
 
 # ---------------------------------------------------------------------------
