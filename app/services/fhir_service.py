@@ -21,8 +21,8 @@ from app.sharp import SharpContext
 
 logger = logging.getLogger(__name__)
 
-# LOINC category code for laboratory results
-_LABORATORY_CATEGORY = "laboratory"
+# Laboratory category — full URL required by Epic R4; short form works on HAPI
+_LABORATORY_CATEGORY = "http://terminology.hl7.org/CodeSystem/observation-category|laboratory"
 _DEFAULT_TIMEOUT = 15.0
 
 
