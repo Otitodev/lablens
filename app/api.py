@@ -1,13 +1,12 @@
+import json
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from app.dependencies import get_epic_oauth_service, get_tool_service
 from app.agent_card import AGENT_CARD
 from app.services.epic_oauth_service import EPIC_SANDBOX_PATIENT_IDS
 from app.sharp import SharpContext, extract_sharp_context
-
-logger = logging.getLogger(__name__)
 from app.models.tools import (
     FlagCriticalValuesRequest,
     FlagCriticalValuesResponse,
@@ -20,7 +19,74 @@ from app.models.tools import (
 )
 from app.services.tool_service import ToolService
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+# ---------------------------------------------------------------------------
+# MCP tool definitions — served via tools/list
+# ---------------------------------------------------------------------------
+
+_MCP_TOOLS = [
+    {
+        "name": "flag_critical_values",
+        "description": (
+            "Scans lab results for critical and abnormal values. Returns a prioritized alert list "
+            "sorted by severity. Rule-based — no LLM required. Accepts SHARP headers to pull live "
+            "FHIR Observation data automatically."
+        ),
+        "inputSchema": FlagCriticalValuesRequest.model_json_schema(),
+    },
+    {
+        "name": "interpret_lab_panel",
+        "description": (
+            "Interprets a structured lab panel using AI reasoning. Returns per-analyte commentary "
+            "with clinical context and significance, plus an overall assessment and recommended actions."
+        ),
+        "inputSchema": InterpretLabPanelRequest.model_json_schema(),
+    },
+    {
+        "name": "generate_clinical_summary",
+        "description": (
+            "Generates a clinical narrative from lab results. Supports chart_note, referral, and "
+            "patient_facing summary types. Reduces documentation burden on clinicians."
+        ),
+        "inputSchema": GenerateClinicalSummaryRequest.model_json_schema(),
+    },
+    {
+        "name": "suggest_differentials",
+        "description": (
+            "Ranks differential diagnoses from a pattern of abnormal lab findings using clinical "
+            "reasoning across analytes. Surfaces cross-analyte patterns that rule-based systems miss."
+        ),
+        "inputSchema": SuggestDifferentialsRequest.model_json_schema(),
+    },
+]
+
+
+def _dispatch_tool(
+    tool_name: str,
+    arguments: dict,
+    tool_service: ToolService,
+    sharp: SharpContext,
+) -> dict:
+    if tool_name == "flag_critical_values":
+        return tool_service.flag_critical_values(
+            FlagCriticalValuesRequest.model_validate(arguments), sharp=sharp
+        ).model_dump()
+    if tool_name == "interpret_lab_panel":
+        return tool_service.interpret_lab_panel(
+            InterpretLabPanelRequest.model_validate(arguments), sharp=sharp
+        ).model_dump()
+    if tool_name == "generate_clinical_summary":
+        return tool_service.generate_clinical_summary(
+            GenerateClinicalSummaryRequest.model_validate(arguments), sharp=sharp
+        ).model_dump()
+    if tool_name == "suggest_differentials":
+        return tool_service.suggest_differentials(
+            SuggestDifferentialsRequest.model_validate(arguments), sharp=sharp
+        ).model_dump()
+    raise ValueError(f"Unknown tool: {tool_name}")
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +124,60 @@ def mcp_initialize() -> dict:
             "experimental": AGENT_CARD["capabilities"]["experimental"],
         },
     }
+
+
+@router.post("/mcp")
+async def mcp_jsonrpc(
+    request: Request,
+    tool_service: ToolService = Depends(get_tool_service),
+    sharp: SharpContext = Depends(extract_sharp_context),
+) -> dict:
+    """MCP Streamable HTTP JSON-RPC endpoint.
+
+    Handles initialize, tools/list, and tools/call messages from
+    Prompt Opinion and other MCP-compatible platforms.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return {"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}
+
+    method = body.get("method", "")
+    req_id = body.get("id")
+    params = body.get("params", {})
+
+    if method == "initialize":
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "serverInfo": {"name": AGENT_CARD["name"], "version": AGENT_CARD["version"]},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "experimental": AGENT_CARD["capabilities"]["experimental"],
+                },
+            },
+        }
+
+    if method == "tools/list":
+        return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": _MCP_TOOLS}}
+
+    if method == "tools/call":
+        tool_name = params.get("name", "")
+        arguments = params.get("arguments", {})
+        try:
+            result = _dispatch_tool(tool_name, arguments, tool_service, sharp)
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {"content": [{"type": "text", "text": json.dumps(result)}]},
+            }
+        except Exception as exc:
+            logger.exception("mcp_tools_call_failed tool=%s", tool_name)
+            return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32000, "message": str(exc)}}
+
+    return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Method not found: {method}"}}
 
 
 @router.get("/fhir/epic/patients")
