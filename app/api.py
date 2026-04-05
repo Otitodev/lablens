@@ -122,6 +122,9 @@ def mcp_initialize() -> dict:
         "capabilities": {
             "tools": {"listChanged": False},
             "experimental": AGENT_CARD["capabilities"]["experimental"],
+            "extensions": {
+                "ai.promptopinion/fhir-context": {},
+            },
         },
     }
 
@@ -156,6 +159,9 @@ async def mcp_jsonrpc(
                 "capabilities": {
                     "tools": {"listChanged": False},
                     "experimental": AGENT_CARD["capabilities"]["experimental"],
+                    "extensions": {
+                        "ai.promptopinion/fhir-context": {},
+                    },
                 },
             },
         }
