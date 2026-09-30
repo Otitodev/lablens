@@ -1,5 +1,22 @@
 # LabLens MCP
 
+**The problem.** Clinicians and lab staff dig through charts by hand to interpret lab results and spot critical values. LabLens gives AI agents tools to do that work against live FHIR data, so a person can ask questions about a patient's results and get an interpreted answer.
+
+**Live demo:** [lablens.up.railway.app](https://lablens.up.railway.app) (hackathon build)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  Agent["AI agent (MCP client)"] -->|"POST /tools/*"| API["LabLens (FastAPI)"]
+  Agent -->|"SHARP headers"| API
+  API -->|"OAuth 2.0 JWT assertion"| Epic["Epic FHIR R4 sandbox"]
+  API --> Rules["flag_critical_values (rule based)"]
+  API --> LLM["LLM provider: Anthropic, Gemini, OpenAI, or Mistral"]
+```
+
+When SHARP headers are present, LabLens fetches lab Observations from the FHIR server and passes them to the tools. Without them, the tools work on the request body.
+
 Medical laboratory intelligence MCP server built for the [Agents Assemble — The Healthcare AI Endgame](https://agents-assemble.devpost.com/) hackathon on the Prompt Opinion Marketplace.
 
 Exposes four JSON-first HTTP tools that interpret patient lab data using AI reasoning. Supports SHARP Extension Specs for FHIR context propagation across multi-agent call chains, and integrates with Epic's FHIR sandbox via OAuth 2.0 JWT assertion.
